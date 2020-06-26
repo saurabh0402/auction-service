@@ -1,25 +1,17 @@
-import { v4 as uuid } from 'uuid';
 import AWS from 'aws-sdk';
 import middleware from '../lib/middleware';
 import createError from 'http-errors';
 
 const dynamodb = new AWS.DynamoDB.DocumentClient();
 
-async function createAuction(event, context) {
-  const { title } = event.body;
-
-  const auction = {
-    id: uuid(),
-    title,
-    status: 'OPEN',
-    createdAt: (new Date()).toISOString(),
-  };
-
+async function getAuctions(event, context) {
+  let auctions = [];
   try {
-    await dynamodb.put({
+    const result = await dynamodb.scan({
       TableName: process.env.AUCTIONS_TABLE,
-      Item: auction,
     }).promise();
+
+    auctions = result.Items;
   } catch(err) {
     throw new createError.InternalServerError(err);
   }
@@ -29,9 +21,11 @@ async function createAuction(event, context) {
     body: JSON.stringify({
       success: true,
       errors: null,
-      data: auction,
+      data: auctions,
     }),
   };
 }
 
-export const handler = middleware(createAuction);
+export const handler = middleware(getAuctions);
+
+
