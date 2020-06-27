@@ -27,6 +27,10 @@ async function placeBid(event, context) {
     throw new createError.Forbidden(`Amount must be greater than ${auction.highestBid.amount}`);
   }
 
+  if(auction.status !== 'OPEN') {
+    throw new createError.Forbidden(`You can not place bid on closed auctions. Auction with ID ${auction.id} has already closed.`);
+  }
+
   try {
     const result = await dynamodb.update(params).promise();
     updatedAuction = result.Attributes;
