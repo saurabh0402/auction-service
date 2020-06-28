@@ -1831,7 +1831,6 @@ const handler = async (event, context) => {
   try {
     const claims = jsonwebtoken__WEBPACK_IMPORTED_MODULE_1___default.a.verify(token, process.env.AUTH0_PUBLIC_KEY);
     const policy = generatePolicy(claims.sub, event.methodArn);
-    console.log(claims.sub, event.methodArn);
     return { ...policy,
       context: claims
     };

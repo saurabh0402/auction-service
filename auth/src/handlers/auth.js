@@ -28,7 +28,6 @@ export const handler = async (event, context) => {
     const claims = jwt.verify(token, process.env.AUTH0_PUBLIC_KEY);
     const policy = generatePolicy(claims.sub, event.methodArn);
 
-    console.log(claims.sub, event.methodArn);
     return {
       ...policy,
       context: claims,
