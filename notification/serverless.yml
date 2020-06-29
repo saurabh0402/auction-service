@@ -1,0 +1,56 @@
+
+service: notification
+
+plugins:
+  - serverless-bundle
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  stage: ${opt:stage, 'dev'}
+  region: eu-west-1
+  memorySize: 128
+  environment:
+    REGION: ${self:provider.region}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - ses:sendEmail
+      Resource: arn:aws:ses:*
+    - Effect: Allow
+      Action:
+        - sqs:ReceiveMessage
+      Resource: ${self:custom.MailQueue.arn}
+
+resources:
+  Resources:
+    MailQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: ${self:custom.MailQueue.name}
+  Outputs:
+    MailQueueArn:
+      Value: ${self:custom.MailQueue.arn}
+      Export:
+        Name: ${self:custom.MailQueue.name}-Arn
+    MailQueueUrl:
+      Value: ${self:custom.MailQueue.url}
+      Export:
+        Name: ${self:custom.MailQueue.name}-Url
+
+
+functions:
+  sendMail:
+    handler: src/handlers/sendMail.handler
+    events:
+      - sqs:
+          arn: ${self:custom.MailQueue.arn}
+          batchSize: 1
+          maximumRetryAttempts: 0
+
+custom:
+  MailQueue:
+    name: MailQueue-${self:provider.stage}
+    arn: !GetAtt MailQueue.Arn
+    url: !Ref MailQueue
+  

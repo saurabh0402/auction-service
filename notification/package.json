@@ -1,0 +1,16 @@
+{
+  "name": "notification-service",
+  "version": "0.0.1",
+  "author": "Saurabh Kumar <saurabh.k0402@gmail.com>",
+  "description": "",
+  "license": "MIT",
+  "scripts": {
+    "deploy": "AWS_PROFILE=non-work sls deploy -v"
+  },
+  "dependencies": {
+    "aws-sdk": "^2.706.0"
+  },
+  "devDependencies": {
+    "serverless-bundle": "^1.3.3"
+  }
+}
