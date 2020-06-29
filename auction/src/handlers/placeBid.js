@@ -12,13 +12,15 @@ async function placeBid(event, context) {
   let updatedAuction = {};
   const { id } = event.pathParameters;
   const { amount } = event.body;
+  const { email } = event.requestContext.authorizer;
 
   const params = {
     TableName: process.env.AUCTIONS_TABLE,
     Key: { id },
-    UpdateExpression: 'set highestBid.amount = :amount',
+    UpdateExpression: 'set highestBid.amount = :amount, highestBid.bidder = :bidder',
     ExpressionAttributeValues: {
       ':amount': amount,
+      ':bidder': email,
     },
     ReturnValues: 'ALL_NEW',
   };
@@ -31,6 +33,14 @@ async function placeBid(event, context) {
 
   if(auction.status !== 'OPEN') {
     throw new createError.Forbidden(`You can not place bid on closed auctions. Auction with ID ${auction.id} has already closed.`);
+  }
+
+  if(auction.seller === email) {
+    throw new createError.Forbidden(`You are seller, you can't place a bid.`);
+  }
+
+  if(auction.highestBid.bidder === email) {
+    throw new createError.Forbidden(`You already have the maximum bid, you can't place a bid.`);
   }
 
   try {
