@@ -6,7 +6,6 @@ const ses = new AWS.SES({
 
 async function sendMail(event, context) {
   const [record] = event.Records;
-  console.log("Record ", record);
 
   const {
     subject, body, recipient
