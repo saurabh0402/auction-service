@@ -14,13 +14,17 @@ provider:
   environment:
     AUCTIONS_TABLE: ${self:custom.AuctionsTable.name}
     MAIL_QUEUE_URL: ${self:custom.MailQueue.url}
+    AUCTIONS_BUCKET: ${self:custom.AuctionsBucket.name}
   iamRoleStatements:
     - ${file(ymlSources/iam/AuctionsTableIAM.yml):AuctionsTableIAM}
     - ${file(ymlSources/iam/MailQueueIAM.yml):MailQueueIAM}
+    - ${file(ymlSources/iam/AuctionsBucketIAM.yml):AuctionsBucketIAM}
 
 resources:
   Resources:
     AuctionsTable: ${file(ymlSources/resources/AuctionsTableResource.yml):AuctionsTableResource}
+    AuctionsBucket: ${file(ymlSources/resources/AuctionsBucketResource.yml):AuctionsBucketResource}
+    AuctionsBucketPolicy: ${file(ymlSources/resources/AuctionsBucketResource.yml):AuctionsBucketPolicy}
   
 functions:
   createAuction:
@@ -29,6 +33,14 @@ functions:
       - http:
           method: POST
           path: /auction
+          authorizer: ${self:custom.authorizer}
+
+  uploadAuctionPicture:
+    handler: src/handlers/uploadAuctionPicture.handler
+    events:
+      - http:
+          method: PATCH
+          path: /auction/{id}/upload
           authorizer: ${self:custom.authorizer}
   
   getAuctions:
@@ -68,3 +80,5 @@ custom:
   MailQueue:
     arn: ${cf:notification-${self:provider.stage}.MailQueueArn}
     url: ${cf:notification-${self:provider.stage}.MailQueueUrl}
+  AuctionsBucket:
+    name: auctions-bucket-dshfjsbh-${self:provider.stage}
